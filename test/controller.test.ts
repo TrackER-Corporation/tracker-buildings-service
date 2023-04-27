@@ -26,30 +26,22 @@ describe('Building controller', () => {
     };
 
     beforeAll(() => {
-        // connectToDatabase()
         vi.clearAllMocks();
     });
 
 
     it('should return a 400 status code if any required fields are missing', async () => {
-        // Mock a request with missing required fields
         const req = {
             body: {
-                // Missing fields: name, contact, address, type, lat, long, organizationId, sqft
                 userId: '1234567890',
             },
         };
-
-        // Mock a response object
         const res = {
             status: vi.fn().mockReturnThis(),
             json: vi.fn(),
         };
 
-        // Call the registerBuilding function with the mock request and response objects
         await registerBuilding(req, res);
-
-        // Check that the response status code is 400
         expect(res.status).toHaveBeenCalledWith(400);
     });
 
