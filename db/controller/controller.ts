@@ -105,14 +105,13 @@ export const updateBuildingResources = asyncHandler(async (req: any, res: any) =
 })
 
 export const getBuildingsById = asyncHandler(async (req: any, res: any) => {
-    let result = collections.buildings?.find({ userId: new ObjectId(req.params.id) }).toArray()
-    res.status()
-    if (!result) {
+    let result = await collections.buildings?.find({ userId: new ObjectId(req.params.id) }).toArray()
+    if (result?.length === 0) {
         res.status(400)
         // throw new Error('Goal not found')
-    }
-    res.status(200).json(result)
-
+    }else{
+        res.status(200).json(result)
+    } 
 });
 
 export const getBuilding = asyncHandler(async (req: any, res: any) => {
@@ -161,4 +160,18 @@ export const deleteBuildingById = asyncHandler(async (req: any, res: any) => {
     }
     await building?.remove()
     res.status(200).json({ id: req.params.id })
+})
+
+export const deleteBuildingByUserId = asyncHandler(async (req: any, res: any) => {
+    let myQuery = { userId: new ObjectId(req.params.id) };
+    const buildings = await collections?.buildings?.find(myQuery).toArray()
+    if (buildings?.length === 0) {
+        res.status(400)
+        return
+        // throw new Error('Goal not found')
+    }
+    buildings?.forEach(async (building) => {
+        await collections?.buildings?.deleteOne(building)
+    });
+    res.status(200).json({buildings})
 })

@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { deleteBuildingById, getBuilding, getBuildings, getBuildingsById, getBuildingsByOrganizationId, registerBuilding, updateBuilding, updateBuildingResources } from "../db/controller/controller";
+import { deleteBuildingById, getBuilding, getBuildings, getBuildingsById, getBuildingsByOrganizationId, registerBuilding, updateBuilding, updateBuildingResources, deleteBuildingByUserId } from "../db/controller/controller";
 import { ObjectId } from "mongodb";
 
 
@@ -260,6 +260,32 @@ describe('Building controller', () => {
     });
 
     it('should delete a building by ID', async () => {
+        // Create a new building to be deleted
+        const req = {
+            params: {
+                _id: "sadasd",
+            },
+            body: {
+                name: 'Test Building',
+                contact: 'test@example.com',
+                userId: '610a96a9f9d9b935a42a50a1',
+                address: '123 Main St, Anytown USA',
+                type: 'Office',
+                organizationId: '610a96a9f9d9b935a42a50a2',
+                sqft: 1000,
+                lat: 40.7128,
+                long: -74.0060
+            }
+        };
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn()
+        };
+        await deleteBuildingById(req, res);
+        expect(res.status).toHaveBeenCalledWith(400);
+    })
+
+    it('should delete a building by User ID', async () => {
         // Create a new building to be deleted
         const req = {
             params: {
