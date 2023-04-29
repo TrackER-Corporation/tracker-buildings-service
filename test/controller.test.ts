@@ -294,7 +294,7 @@ describe('Building controller', () => {
             body: {
                 name: 'Test Building 2',
                 contact: 'test2@example.com',
-                userId: '610a96a9f9d9b935a42a50a9',
+                userId: '999999999999',
                 address: '456 Main St, EAST',
                 type: 'Pool',
                 organizationId: '610a96a9f9d9b935a42a50a9',
@@ -307,7 +307,7 @@ describe('Building controller', () => {
             status: vi.fn().mockReturnThis(),
             json: vi.fn()
         };
-        await deleteBuildingById(req, res);
+        await deleteBuildingByUserId(req, res);
         expect(res.status).toHaveBeenCalledWith(400);
     })
 });

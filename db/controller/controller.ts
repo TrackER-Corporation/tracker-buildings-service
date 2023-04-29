@@ -165,7 +165,7 @@ export const deleteBuildingById = asyncHandler(async (req: any, res: any) => {
 export const deleteBuildingByUserId = asyncHandler(async (req: any, res: any) => {
     let myQuery = { userId: new ObjectId(req.params.id) };
     const buildings = await collections?.buildings?.find(myQuery).toArray()
-    if (buildings?.length === 0) {
+    if (buildings?.length === 0 || buildings === undefined) {
         res.status(400)
         return
         // throw new Error('Goal not found')
