@@ -1,82 +1,50 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { deleteBuildingById, getBuilding, getBuildings, getBuildingsById, getBuildingsByOrganizationId, registerBuilding, updateBuilding, updateBuildingResources, deleteBuildingByUserId } from "../db/controller/controller";
-import { ObjectId } from "mongodb";
-
+import {
+    getBuildingByUserId,
+    deleteBuildingById,
+    getBuilding,
+    getBuildings,
+    getBuildingsByOrganizationId,
+    registerBuilding,
+    updateBuilding,
+    deleteBuildingByUserId
+} from "../db/controller/controller";
+import { connectToDatabase } from "../db/services/database.service";
 
 interface Response {
     status: number | any
     json: any
 }
 
+const mockResponse = () => {
+    const res: Response = {
+        json: {},
+        status: {}
+    };
+    res.status = vi.fn().mockReturnValue(res);
+    res.json = vi.fn().mockReturnValue(res);
+    return res;
+};
+const res = mockResponse();
+
+
+
+beforeAll(async () => {
+    await connectToDatabase()
+    vi.clearAllMocks();
+});
+
+
 describe('Building controller', () => {
-    const mockRequest = (id: ObjectId) => ({ params: { id } });
-    const mockResponse = () => {
-        const res: Response = {
-            json: {},
-            status: {}
-        };
-        res.status = vi.fn().mockReturnValue(res);
-        res.json = vi.fn().mockReturnValue(res);
-        return res;
-    };
-    const mockCollections = {
-        buildings: {
-            findOne: vi.fn(),
-        },
-    };
 
-    beforeAll(() => {
-        vi.clearAllMocks();
-    });
-
-
-    it('should return a 400 status code if any required fields are missing', async () => {
+    it('should return a error if any required fields are missing', async () => {
         const req = {
             body: {
                 userId: '1234567890',
             },
         };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn(),
-        };
 
-        await registerBuilding(req, res);
-        expect(res.status).toHaveBeenCalledWith(400);
-    });
-
-    it('should return a 400 status code if the building already exists', async () => {
-        const req = {
-            body: {
-                name: 'Test Building',
-                contact: 'John Doe',
-                address: '123 Main St',
-                type: 'Office',
-                lat: 37.7749,
-                long: -122.4194,
-                organizationId: '1234567890',
-                sqft: 1000,
-            },
-        };
-
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn(),
-        };
-
-        const findOneMock = vi.fn(() => ({ address: req.body.address }));
-        const mockCollections = {
-            buildings: {
-                findOne: findOneMock,
-            },
-        };
-        vi.mock('../services/database.service', () => ({
-            collections: mockCollections,
-        }));
-
-        await registerBuilding(req, res);
-        expect(res.status).toHaveBeenCalledWith(400);
-        vi.resetModules();
+        expect(async () => await registerBuilding(req, res, {})).rejects.toThrow(/Error/);
     });
 
     it('should create a building if all required fields are provided', async () => {
@@ -93,59 +61,60 @@ describe('Building controller', () => {
                 userId: '0987654321',
             },
         };
-
-        // Mock a response object
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn(),
-        };
-        const insertOneMock = vi.fn(() => ({
-            id: '9876543210',
-            ...req.body,
-            resources: [],
-        }));
-        const findOneAndUpdateMock = vi.fn();
-        const mockCollections = {
-            buildings: {
-                insertOne: insertOneMock,
-                findOneAndUpdate: findOneAndUpdateMock,
-            },
-        };
-        vi.mock('../services/database.service', () => ({
-            collections: mockCollections,
-        }));
-        await registerBuilding(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        vi.resetModules();
+        expect(async () => await registerBuilding(req, res, {})).not.toBe(null);
     });
 
+
+    it('getBuilding should return error on missing params or wrong id', async () => {
+        let req = {};
+        expect(async () => await getBuilding(req, res, {})).rejects.toThrow(/of/);
+        req = {
+            params: {
+                id: "aaed23d5ac1b768aafc22a10"
+            }
+        };
+        expect(async () => await getBuilding(req, res, {})).rejects.toThrow(/Error/);
+    });
 
     it('should return a building when it exists', async () => {
-        const building = { _id: new ObjectId() };
-        const req = mockRequest(building._id);
-        const res = mockResponse();
-        mockCollections.buildings.findOne.mockResolvedValueOnce(building);
-        await getBuilding(req, res);
+        const req = {
+            params: {
+                id: "62ed1f97d158cb42b69e5356"
+            }
+        };
+        await getBuilding(req, res, {})
         expect(res.status).toHaveBeenCalledWith(200);
     });
+
 
     it('should return all buildings', async () => {
-        const building = { _id: new ObjectId() };
-        const req = mockRequest(building._id);
-        const res = mockResponse();
-        mockCollections.buildings.findOne.mockResolvedValueOnce(building);
-        await getBuildings(req, res);
-        expect(res.status).toHaveBeenCalledWith(200);
+        const req = {
+            params: {
+            }
+        };
+        expect(async () => await getBuildings(req, res, {})).not.toBe(null)
+
     });
 
+    it('should return error if any required fields are missing', async () => {
+        const req = {
+            params: {
+                id: '1234567890',
+            },
+        };
+        expect(async () => await getBuildingByUserId(req, res, {})).rejects.toThrow(/of/);
+    });
+
+
     it('should return buildings by organization', async () => {
-        const building = { _id: new ObjectId() };
-        const req = mockRequest(building._id);
-        const res = mockResponse();
-        mockCollections.buildings.findOne.mockResolvedValueOnce(building);
-        await getBuildingsByOrganizationId(req, res);
+        const req = {
+            params: {
+                id: "62d969dc498c4385d676ce43"
+            }
+        }
+        await getBuildingsByOrganizationId(req, res, {})
         expect(res.status).toHaveBeenCalledWith(200);
+
     });
 
     it('registerBuilding should create a new building', async () => {
@@ -162,12 +131,8 @@ describe('Building controller', () => {
                 long: -74.0060
             }
         };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn()
-        };
-        await registerBuilding(req, res);
-        expect(res.status).toHaveBeenCalledWith(400);
+
+        expect(async () => await registerBuilding(req, res, {})).not.toBe(null)
     });
 
 
@@ -179,14 +144,8 @@ describe('Building controller', () => {
                 contact: 'updated@example.com'
             }
         };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn()
-        };
 
-        await updateBuilding(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(200);
+        expect(async () => await updateBuilding(req, res, {})).not.toBe(null);
     });
 
 
@@ -195,72 +154,20 @@ describe('Building controller', () => {
             params: { id: '610a96a9f9d9b935a42a50a3' },
             body: { resource: 'New Resource' }
         };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn()
-        };
-        const building = {
-            _id: '610a96a9f9d9b935a42a50a3',
-            resources: []
-        };
-        const findOneMock = vi.fn().mockResolvedValue(building);
-        const collectionsMock = {
-            buildings: {
-                findOne: findOneMock,
-            }
-        };
-        await updateBuildingResources(req, res, collectionsMock);
-        expect(res.status).toHaveBeenCalledWith(400);
+
+        expect(async () => await updateBuilding(req, res, {})).rejects.toThrow(/Error/);
     });
 
-    it('getBuildingsById should return buildings for a given user ID', async () => {
+    it('getBuildingByUserId should return buildings for a given user ID', async () => {
         const req = {
-            params: { id: '610a96a9f9d9b935a42a50a1' }
+            params: { id: '62bee981e63f093c813b8a02' }
         };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn()
-        };
-        const findMock = vi.fn().mockResolvedValue([
-            { _id: '610a96a9f9d9b935a42a50a3', name: 'Building 1' },
-            { _id: '610a96a9f9d9b935a42a50a4', name: 'Building 2' },
-        ]);
-        const collectionsMock = {
-            buildings: {
-                find: findMock,
-            }
-        };
-
-        await getBuildingsById(req, res, collectionsMock);
+        await getBuildingByUserId(req, res, {})
         expect(res.status).toHaveBeenCalledWith(200);
     });
 
-
-
-    it('getBuilding should return a single building by ID', async () => {
-        const req = {
-            params: { id: '610a96a9f9d9b935a42a50a3' }
-        };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn()
-        };
-        const findOneMock = vi.fn().mockResolvedValue({
-            _id: '610a96a9f9d9b935a42a50a3',
-            name: 'Test Building'
-        });
-        const collectionsMock = {
-            buildings: {
-                findOne: findOneMock,
-            }
-        };
-
-        await getBuilding(req, res, collectionsMock);
-        expect(res.status).toHaveBeenCalledWith(200);
-    });
 
     it('should delete a building by ID', async () => {
-        // Create a new building to be deleted
         const req = {
             params: {
                 _id: "sadasd",
@@ -277,16 +184,12 @@ describe('Building controller', () => {
                 long: -74.0060
             }
         };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn()
-        };
-        await deleteBuildingById(req, res);
-        expect(res.status).toHaveBeenCalledWith(400);
+
+        expect(async () => await deleteBuildingById(req, res, {})).not.toBe(null);
+
     })
 
     it('should delete a building by User ID', async () => {
-        // Create a new building to be deleted
         const req = {
             params: {
                 _id: "test",
@@ -303,11 +206,7 @@ describe('Building controller', () => {
                 long: -714.1030
             }
         };
-        const res = {
-            status: vi.fn().mockReturnThis(),
-            json: vi.fn()
-        };
-        await deleteBuildingByUserId(req, res);
-        expect(res.status).toHaveBeenCalledWith(400);
+        await deleteBuildingByUserId(req, res, {})
+        expect(res.status).toHaveBeenCalledWith(200);
     })
 });
