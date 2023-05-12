@@ -3,14 +3,10 @@ import asyncHandler from 'express-async-handler'
 import { ObjectId } from 'mongodb'
 import { collections } from '../services/database.service'
 
+
 export const getBuilding = asyncHandler(async (req: any, res: any) => {
     const building = await collections?.buildings?.findOne({ _id: new ObjectId(req.params.id) })
-    if (!building) {
-        throw new Error('Error')
-    }
-    if (!building?._id) {
-        throw new Error('Error')
-    }
+    if (!building) throw new Error('Error')
     res.status(200).json(building)
 })
 
@@ -21,10 +17,9 @@ export const getBuildings = asyncHandler(async (req: any, res: any) => {
     res.status(200).json(buildings)
 })
 
-
 export const getBuildingByUserId = asyncHandler(async (req: any, res: any) => {
     let result = await collections.buildings?.find({ userId: new ObjectId(req.params.id) }).toArray()
-    if (result?.length === 0) {
+    if (!result || result?.length === 0) {
         throw new Error('Error')
     } else {
         res.status(200).json(result)
@@ -33,12 +28,7 @@ export const getBuildingByUserId = asyncHandler(async (req: any, res: any) => {
 
 export const getBuildingsByOrganizationId = asyncHandler(async (req: any, res: any) => {
     const building = await collections?.buildings?.find({ organizationId: new ObjectId(req.params.id) }).toArray()
-    if (!building) {
-        throw new Error('Error')
-    }
-    if (!building) {
-        throw new Error('Error')
-    }
+    if (!building) throw new Error('Error')
     res.status(200).json(building)
 })
 
@@ -50,8 +40,10 @@ export const registerBuilding = asyncHandler(async (req: any, res: any) => {
         throw new Error('Error')
     }
 
-    if (await collections?.buildings?.findOne({ address }))
+    collections.buildings?.findOne({ address }).catch(() => {
         throw new Error('Error')
+    })
+
 
     await collections?.buildings?.insertOne({
         name,
@@ -65,15 +57,14 @@ export const registerBuilding = asyncHandler(async (req: any, res: any) => {
         long,
         resources: []
     }).then(async (building: any) => {
-        console.log(building)
         const response = await fetch(`http://localhost:3000/api/organization/${organizationId}`)
         var data = await response.json()
-        console.log(data.customers)
+
         data.customers.push({
             building: building.insertedId,
             user: userId,
         })
-        console.log(data.customers)
+
         const update = await fetch(`http://localhost:3000/api/organization/${organizationId}`, {
             method: "PUT",
             body: JSON.stringify(data),
@@ -106,7 +97,6 @@ export const registerBuilding = asyncHandler(async (req: any, res: any) => {
 
 export const updateBuilding = asyncHandler(async (req: any, res: any) => {
     const building = await collections?.buildings?.findOne(new ObjectId(req.params.id))
-
     if (!building) throw new Error('Error')
 
     const data = req.body
@@ -123,17 +113,13 @@ export const updateBuildingResources = asyncHandler(async (req: any, res: any) =
     if (!building) {
         throw new Error('Error')
     }
-    if (building?._id.toString() !== req.params.id) {
-
-        throw new Error('Error')
-    }
 
     building?.resources.push(req.body.resource)
     building?.save().
         then(() =>
             res.status(200).json(building)
-        ).catch((e: string) => {
-            throw new Error(e)
+        ).catch(() => {
+            throw new Error("Error")
         })
 })
 
@@ -146,7 +132,6 @@ export const deleteBuildingById = asyncHandler(async (req: any, res: any) => {
 })
 
 export const deleteBuildingByUserId = asyncHandler(async (req: any, res: any) => {
-    let myQuery = { userId: new ObjectId(req.params.id) };
-    await collections?.buildings?.deleteMany(myQuery)
+    await collections?.buildings?.deleteMany({ userId: new ObjectId(req.params.id) })
     res.status(200)
 })
