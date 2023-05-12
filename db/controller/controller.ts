@@ -18,7 +18,7 @@ export const getBuildings = asyncHandler(async (req: any, res: any) => {
 })
 
 export const getBuildingByUserId = asyncHandler(async (req: any, res: any) => {
-    let result = await collections.buildings?.find({ userId: new ObjectId(req.params.id) }).toArray()
+    const result = await collections.buildings?.find({ userId: new ObjectId(req.params.id) }).toArray()
     if (!result || result?.length === 0) {
         throw new Error('Error')
     } else {
@@ -58,7 +58,7 @@ export const registerBuilding = asyncHandler(async (req: any, res: any) => {
         resources: []
     }).then(async (building: any) => {
         const response = await fetch(`http://localhost:3000/api/organization/${organizationId}`)
-        var data = await response.json()
+        const data = await response.json()
 
         data.customers.push({
             building: building.insertedId,

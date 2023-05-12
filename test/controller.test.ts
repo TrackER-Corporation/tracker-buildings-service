@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, test, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
     getBuildingByUserId,
     deleteBuildingById,
@@ -155,10 +155,6 @@ describe('Building controller', () => {
             body: { resource: 'New Resource' }
         };
 
-        const building = {
-            _id: '610a96a9f9d9b935a42a50a3',
-            resources: []
-        };
         expect(async () => await updateBuilding(req, res, {})).rejects.toThrow(/Error/);
     });
 
@@ -172,7 +168,6 @@ describe('Building controller', () => {
 
 
     it('should delete a building by ID', async () => {
-        // Create a new building to be deleted
         const req = {
             params: {
                 _id: "sadasd",
@@ -195,7 +190,6 @@ describe('Building controller', () => {
     })
 
     it('should delete a building by User ID', async () => {
-        // Create a new building to be deleted
         const req = {
             params: {
                 _id: "test",
