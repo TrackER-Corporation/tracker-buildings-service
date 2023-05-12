@@ -3,126 +3,13 @@ import asyncHandler from 'express-async-handler'
 import { ObjectId } from 'mongodb'
 import { collections } from '../services/database.service'
 
-// @desc    Get goals
-// @route   GET /api/goals
-// @access  Private
-export const registerBuilding = asyncHandler(async (req: any, res: any) => {
-    const { name, contact, userId, address, type, organizationId, sqft, lat, long } = req.body
-
-    if (!name || !contact || !address || !type || !lat || !long || !organizationId || !sqft) {
-        res.status(400)
-        // throw new Error('Please add all fields')
-    }
-
-    // Check if building exists
-    if (await collections?.buildings?.findOne({ address }))
-        res.status(400)// throw new Error('Building already exists')
-
-    // Create building
-    const building: any = await collections?.buildings?.insertOne({
-        name,
-        contact,
-        userId,
-        address,
-        organizationId,
-        sqft,
-        type,
-        lat,
-        long,
-        resources: []
-    })
-
-    if (building) {
-        const org = await collections?.buildings?.findOneAndUpdate({ _id: new ObjectId(organizationId) }, {
-            "$push": {
-                customers: {
-                    building: building.id,
-                    user: userId,
-                } as any
-            }
-        })
-        if (org)
-            res.status(201).json({
-                _id: building.id,
-                name: building.name,
-                contact: building.contact,
-                userId: building.userId,
-                organizationId: building.organizationId,
-                sqft: building.sqft,
-                address: building.address,
-                type: building.type,
-                lat: building.lat,
-                long: building.long,
-                resources: []
-            })
-        else {
-            res.status(400)
-            // throw new Error('Not Created')
-        }
-    } else {
-        res.status(400)
-        // throw new Error('Invalid building data')
-    }
-})
-
-export const updateBuilding = asyncHandler(async (req: any, res: any) => {
-    const building = await collections?.buildings?.findOne(req.params.id)
-
-    if (!building) {
-        res.status(400)
-        // throw new Error('User not found')
-    }
-
-    // Make sure the logged in user matches the goal user
-    if (building?._id.toString() !== req.params.id) {
-        res.status(401)
-        // throw new Error('User not authorized')
-    }
-
-    const updateBuilding = await collections?.buildings?.findOneAndUpdate({ _di: new ObjectId(req.params.id) }, req.body, {})
-    res.status(200).json(updateBuilding)
-})
-
-export const updateBuildingResources = asyncHandler(async (req: any, res: any) => {
-    const building = await collections?.buildings?.findOne(req.params.id)
-    if (!building) {
-        res.status(400)
-        // throw new Error('User not found')
-    }
-    if (building?._id.toString() !== req.params.id) {
-        res.status(401)
-        // throw new Error('User not authorized')
-    }
-
-    building?.resources.push(req.body.resource)
-    building?.save().
-        then(() =>
-            res.status(200).json(building)
-        ).catch((e: string) => {
-            res.status(400)
-            // throw new Error(e)
-        })
-})
-
-export const getBuildingsById = asyncHandler(async (req: any, res: any) => {
-    let result = await collections.buildings?.find({ userId: new ObjectId(req.params.id) }).toArray()
-    if (result?.length === 0) {
-        res.status(400)
-        // throw new Error('Goal not found')
-    }else{
-        res.status(200).json(result)
-    } 
-});
-
 export const getBuilding = asyncHandler(async (req: any, res: any) => {
     const building = await collections?.buildings?.findOne({ _id: new ObjectId(req.params.id) })
     if (!building) {
-        res.status(400)
-        // throw new Error('Goal not found')
+        throw new Error('Error')
     }
     if (!building?._id) {
-        res.status(401)
-        // throw new Error('User not found')
+        throw new Error('Error')
     }
     res.status(200).json(building)
 })
@@ -130,48 +17,136 @@ export const getBuilding = asyncHandler(async (req: any, res: any) => {
 
 export const getBuildings = asyncHandler(async (req: any, res: any) => {
     const buildings = await collections?.buildings?.find().toArray();
+    if (buildings?.length === 0) throw new Error('Error')
     res.status(200).json(buildings)
 })
+
+
+export const getBuildingByUserId = asyncHandler(async (req: any, res: any) => {
+    let result = await collections.buildings?.find({ userId: new ObjectId(req.params.id) }).toArray()
+    if (result?.length === 0) {
+        throw new Error('Error')
+    } else {
+        res.status(200).json(result)
+    }
+});
 
 export const getBuildingsByOrganizationId = asyncHandler(async (req: any, res: any) => {
     const building = await collections?.buildings?.find({ organizationId: new ObjectId(req.params.id) }).toArray()
     if (!building) {
-        res.status(400).json([])
-        // throw new Error('Goal not found')
+        throw new Error('Error')
     }
     if (!building) {
-        res.status(404).json([])
-        // throw new Error('Building not found')
+        throw new Error('Error')
     }
     res.status(200).json(building)
 })
 
+
+export const registerBuilding = asyncHandler(async (req: any, res: any) => {
+    const { name, contact, userId, address, type, organizationId, sqft, lat, long } = req.body
+
+    if (!name || !contact || !address || !type || !lat || !long || !organizationId || !sqft) {
+        throw new Error('Error')
+    }
+
+    if (await collections?.buildings?.findOne({ address }))
+        throw new Error('Error')
+
+    await collections?.buildings?.insertOne({
+        name,
+        contact,
+        userId: new ObjectId(userId),
+        address,
+        organizationId: new ObjectId(organizationId),
+        sqft,
+        type,
+        lat,
+        long,
+        resources: []
+    }).then(async (building: any) => {
+        console.log(building)
+        const response = await fetch(`http://localhost:3000/api/organization/${organizationId}`)
+        var data = await response.json()
+        console.log(data.customers)
+        data.customers.push({
+            building: building.insertedId,
+            user: userId,
+        })
+        console.log(data.customers)
+        const update = await fetch(`http://localhost:3000/api/organization/${organizationId}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        const updateResponse = await update.json();
+
+
+        if (updateResponse)
+            res.status(201).json({
+                _id: building.insertedId,
+                name: name,
+                contact: contact,
+                userId: userId,
+                organizationId: organizationId,
+                sqft: sqft,
+                address: address,
+                type: type,
+                lat: lat,
+                long: long,
+                resources: []
+            })
+        else
+            throw new Error('Error')
+    }).catch(() => { throw new Error('Error') })
+
+})
+
+export const updateBuilding = asyncHandler(async (req: any, res: any) => {
+    const building = await collections?.buildings?.findOne(new ObjectId(req.params.id))
+
+    if (!building) throw new Error('Error')
+
+    const data = req.body
+
+    const updateBuilding = await collections?.buildings?.findOneAndUpdate(
+        { _id: new ObjectId(req.params.id) },
+        { $set: { ...data } },
+        { returnDocument: 'after' })
+    res.status(200).json(updateBuilding?.value)
+})
+
+export const updateBuildingResources = asyncHandler(async (req: any, res: any) => {
+    const building = await collections?.buildings?.findOne(req.params.id)
+    if (!building) {
+        throw new Error('Error')
+    }
+    if (building?._id.toString() !== req.params.id) {
+
+        throw new Error('Error')
+    }
+
+    building?.resources.push(req.body.resource)
+    building?.save().
+        then(() =>
+            res.status(200).json(building)
+        ).catch((e: string) => {
+            throw new Error(e)
+        })
+})
+
+
 export const deleteBuildingById = asyncHandler(async (req: any, res: any) => {
     let myQuery = { _id: new ObjectId(req.params.id) };
-    const building = await collections?.buildings?.findOne(myQuery)
-    if (!building) {
-        res.status(400)
-        // throw new Error('Goal not found')
-    }
-    // Check for user
-    if (!building?._id) {
-        res.status(401)
-        // throw new Error('User not found')
-    }
-    await building?.remove()
+    const building = await collections?.buildings?.deleteOne(myQuery)
+    if (!building) throw new Error('Error')
     res.status(200).json({ id: req.params.id })
 })
 
 export const deleteBuildingByUserId = asyncHandler(async (req: any, res: any) => {
     let myQuery = { userId: new ObjectId(req.params.id) };
-    const buildings = await collections?.buildings?.find(myQuery).toArray()
-    if (buildings?.length === 0 || buildings === undefined) {
-        res.status(400)
-        return
-        // throw new Error('Goal not found')
-    }
-    buildings?.forEach(async (building) => {
-        await collections?.buildings?.deleteOne(building)
-    });
-    res.status(200).json({buildings})
+    await collections?.buildings?.deleteMany(myQuery)
+    res.status(200)
 })
