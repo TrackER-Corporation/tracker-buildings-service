@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/TrackER-Corporation/tracker-buildings-service/compare/v1.1.0...v1.2.0) (2023-05-12)
+
+
+### Features
+
+* add new route ([3eeeecb](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/3eeeecbdfe698c839bd356318a6e69f9565adec6))
+
+
+### Bug Fixes
+
+* code smell ([497bc63](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/497bc6300446f0706f6b2aae08b693482d268393))
+* code smell and duplication ([56d0053](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/56d0053476bc36be607e9c850d6189dcd3730612))
+* function return state ([4c90a77](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/4c90a7728a9ccd979478351b168c5c4af9d4dc5c))
+
 ## [1.1.0](https://github.com/TrackER-Corporation/tracker-buildings-service/compare/v1.0.0...v1.1.0) (2023-04-27)
 
 
