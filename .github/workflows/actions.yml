@@ -34,7 +34,7 @@ jobs:
           DB_CONN_STRING: ${{ secrets.DB_CONN_STRING }}
           COLLECTION: "buildings"
       - name: Vitest Coverage Report
-        uses: davelosert/vitest-coverage-report-action@v1.4.0
+        uses: davelosert/vitest-coverage-report-action@v2.1.1
         with:
           vite-config-path: "./vite.config.ts"
 
