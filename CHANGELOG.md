@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.1](https://github.com/TrackER-Corporation/tracker-buildings-service/compare/v1.2.0...v1.2.1) (2024-04-11)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @vitejs/plugin-react to v4.0.4 ([92beb39](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/92beb391a7eb452a853ec38b983f400f8833c1fb))
+* **deps:** update dependency dotenv to v16.3.1 ([9332b27](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/9332b2756da479b1da89478f123f37547497b2fa))
+* **deps:** update dependency mongodb to v5.7.0 ([b809135](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/b809135502005ac32795c19defe7fb2e99839773))
+* **deps:** update dependency uuid to v9.0.1 ([a5d28b0](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/a5d28b030ac87658a218fa587d512cf539c6f2fb))
+* **deps:** update socket.io packages to v4.7.2 ([3eba528](https://github.com/TrackER-Corporation/tracker-buildings-service/commit/3eba52846be89f5624181e6da9399a5a8b7dbbdc))
+
 ## [1.2.0](https://github.com/TrackER-Corporation/tracker-buildings-service/compare/v1.1.0...v1.2.0) (2023-05-12)
 
 
